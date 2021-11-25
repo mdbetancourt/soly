@@ -1,6 +1,6 @@
 {
   "name": "soly",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Powerful framework for building command-line apps with typescript.",
   "type": "module",
   "license": "MIT",
