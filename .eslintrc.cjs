@@ -14,7 +14,7 @@ module.exports = {
   env: {
     node: true
   },
-  ignorePatterns: ['*.js'],
+  ignorePatterns: ['*.cjs'],
   rules: {
     'no-throw-literal': 'off',
     '@typescript-eslint/no-throw-literal': ['error']

@@ -1,0 +1,4 @@
+
+# Solq
+
+CLI for humans.
