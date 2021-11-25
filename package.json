@@ -1,16 +1,27 @@
 {
   "name": "soly",
-  "version": "0.1.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "Powerful framework for building command-line apps with typescript.",
   "type": "module",
+  "license": "MIT",
   "keywords": [
-    "typescript"
+    "typescript",
+    "cli",
+    "node",
+    "framework",
+    "command",
+    "command-line",
+    "yargs",
+    "commander",
+    "cac",
+    "zod"
   ],
   "publishConfig": {
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -20,16 +31,16 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "craft",
-    "build:watch": "craft --watch",
+    "build": "craft build",
+    "build:watch": "craft build --watch",
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "test": "uvu -r esbuild-register dist",
     "coverage": "c8 npm test",
-    "lint": "run-s lint:eslint lint:prettier",
-    "lint:ts": "tsup src/index.ts --dts",
+    "lint": "run-s lint:ts lint:eslint lint:prettier",
+    "lint:ts": "tsc --noEmit",
     "lint:eslint": "eslint '**/*.ts'",
-    "lint:prettier": "prettier '**/*.{ts,json,yaml,md}'",
+    "lint:prettier": "prettier --write --ignore-path ./.gitignore '**/*.{ts,json,yaml,md}'",
     "fix": "run-s fix:eslint fix:prettier",
     "fix:eslint": "npm run lint:eslint -- --fix",
     "fix:prettier": "npm run lint:prettier -- --write",
@@ -39,22 +50,21 @@
   "engines": {
     "node": ">=14"
   },
-  "author": "xx-author-xx",
+  "author": "Michel Betancourt",
   "dependencies": {
-    "command-line-args": "^5.2.0"
-  },
-  "peerDependencies": {
+    "command-line-args": "^5.2.0",
+    "string-similarity": "^4.0.4",
     "zod": "^3.0.0"
   },
   "devDependencies": {
-    "@kraftr/build": "^0.4.0",
+    "@types/string-similarity": "^4.0.0",
     "@types/command-line-args": "^5.2.0",
     "@types/node": "^16.11.8",
+    "@kraftr/build": "^0.5.0",
     "@typescript-eslint/eslint-plugin": "^5.3.0",
     "@typescript-eslint/parser": "^5.3.0",
+    "semantic-release": "^18.0.1",
     "c8": "^7.10.0",
-    "esbuild": "^0.13.14",
-    "esbuild-register": "^3.1.2",
     "eslint": "8.1.0",
     "eslint-config-prettier": "8.3.0",
     "husky": "6.0.0",
@@ -63,17 +73,17 @@
     "prettier": "2.4.1",
     "rimraf": "3.0.2",
     "tslib": "2.3.1",
-    "typescript": "^4.5.2",
+    "typescript": "^4.1.0",
     "uvu": "^0.5.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdbetancourt/solq"
+    "url": "https://github.com/mdbetancourt/soly"
   },
   "bugs": {
-    "url": "https://github.com/mdbetancourt/solq/issues"
+    "url": "https://github.com/mdbetancourt/soly/issues"
   },
-  "homepage": "https://github.com/mdbetancourt/solq#readme",
+  "homepage": "https://github.com/mdbetancourt/soly#readme",
   "lint-staged": {
     "*.ts": [
       "eslint --fix",

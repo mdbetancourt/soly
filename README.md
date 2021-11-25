@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="logo.svg" width="200px" align="center" />
   <h1 align="center">Soly</h1>
@@ -29,17 +28,17 @@ pnpm i soly
 You can attach options to a command.
 
 ```ts
-import { createCLI, path } from 'soly'
+import { createCLI, path } from 'soly';
 const cli = createCLI('cli');
 
-cli.command('rm', rm => {
+cli.command('rm', (rm) => {
   // path is used to parse and throw error if the path does not exists
   const [dir] = rm.positionals([path()]);
   const { recursive } = rm.flags();
   recursive.alias('r');
 
   return () => {
-    console.log(`remove ${dir.value}${recursive.value ? 'recursively' : ''}`)
+    console.log(`remove ${dir.value}${recursive.value ? 'recursively' : ''}`);
   };
 });
 
@@ -49,17 +48,17 @@ cli.parse();
 ### Variadic arguments
 
 ```ts
-import { createCLI, string } from 'soly'
+import { createCLI, string } from 'soly';
 const cli = createCLI('cli');
 
-cli.command('rm', rm => {
+cli.command('rm', (rm) => {
   // string for every positional
   const files = rm.positionals(string());
   const { recursive } = rm.flags();
   recursive.alias('r');
 
   return () => {
-    console.log(`Total files ${files.length}`)
+    console.log(`Total files ${files.length}`);
   };
 });
 
@@ -71,9 +70,9 @@ cli.parse();
 Options in camelCase it's tranformed to kebab-case:
 
 ```ts
-import { createCLI, number, z } from 'soly'
+import { createCLI, number, z } from 'soly';
 
-cli.command('fetch', fetch => {
+cli.command('fetch', (fetch) => {
   // You can define a type for every value
   const { maxRetries, method } = copy.named({
     maxRetries: number().min(0).default(3),
@@ -81,7 +80,7 @@ cli.command('fetch', fetch => {
   });
 
   return () => {
-    console.log(maxRetries.value) // 4
+    console.log(maxRetries.value); // 4
   };
 });
 
@@ -99,13 +98,33 @@ Like [zod](https://github.com/colinhacks/zod) all values are required by default
 Register a command that will be used when no other command is matched.
 
 ```ts
-import { createCLI, number, z } from 'soly'
+import { createCLI, number, z } from 'soly';
 
 cli.action(() => {
   return () => {
-    console.log('default command') // 4
+    console.log('default command'); // 4
   };
 });
 
+cli.parse();
+```
+
+### Exclusive flags
+
+```ts
+const cli = createCLI('cli');
+cli.command('copy', (copy) => {
+  const { serve } = copy.flags();
+  const { outFolder } = copy.named({
+    outFolder: string().refine(
+      () => !serve.value,
+      'Output folder cannot be set with serve'
+    )
+  });
+
+  return () => {
+    outFolder.value;
+  };
+});
 cli.parse();
 ```
