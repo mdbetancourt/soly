@@ -1,5 +1,5 @@
 import { test } from 'uvu';
-import { equal } from 'uvu/assert';
+import { equal, throws } from 'uvu/assert';
 import { number, preprocess } from 'zod';
 import { createCLI, path, string } from '../src';
 
@@ -90,6 +90,44 @@ test('nested commands', () => {
   ]);
 
   equal(executed, true);
+});
+
+test('command without arguments', () => {
+  const cli = createCLI('cli');
+  cli.command('copy', () => {
+    return () => {
+      throw new Error();
+    };
+  });
+
+  throws(() => cli.parse(['copy']));
+});
+
+test('default command without arguments', () => {
+  const cli = createCLI('cli');
+  cli.action(() => {
+    throw new Error();
+  });
+
+  throws(() => cli.parse(['copy']));
+});
+
+test('command depending another command', () => {
+  const cli = createCLI('cli');
+  cli.command('copy', (copy) => {
+    const { serve } = copy.flags();
+    const { outFolder } = copy.named({
+      outFolder: string().refine(
+        () => !serve.value,
+        'Output folder cannot be set with serve'
+      )
+    });
+
+    return () => {
+      outFolder.value;
+    };
+  });
+  throws(() => cli.parse(['copy', '--serve', '--out-folder', 'dist/']));
 });
 
 test.run();

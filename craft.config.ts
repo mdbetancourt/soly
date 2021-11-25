@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+// @ts-ignore
 import { defineConfig, libraryPreset } from '@kraftr/build/craft';
-
-import path from 'path';
 
 export default defineConfig({
   entries: ['./src/index.ts'],

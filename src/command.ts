@@ -18,6 +18,7 @@ import {
   ZodTypeAny,
   ZodUnknown
 } from 'zod';
+import { errorHandler } from './error-handler';
 import { Letter } from './utils';
 
 export class Argument<ZodT extends ZodTypeAny = ZodTypeAny> {
@@ -65,6 +66,7 @@ function dashCase(value: string) {
 
 export class Command {
   public hasCommand = false;
+  public readonly commands: Record<string, Command> = {};
 
   constructor(public readonly name: string) {}
   _arguments: Argument[] = [
@@ -76,19 +78,19 @@ export class Command {
     })
   ];
 
-  schema: {
+  private handler = errorHandler;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private _executor: void | (() => void) = () => {};
+  private schema: {
     positionals?: ZodArray<ZodTypeAny> | ZodTuple;
     named?: ZodObject<ZodRawShape>;
   } = {};
 
-  commands: Record<string, Command> = {};
   #positionals: Argument[] = [];
   #named: Record<string, Argument> = {};
 
   positionalCount = 0;
   parseOptions: ParseOptions = { stopAtFirstUnknown: true };
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private _executor: void | (() => void) = () => {};
 
   command(name: string, collector: (cmd: Command) => Action | void): this {
     const cmd = new Command(name);
@@ -137,7 +139,7 @@ export class Command {
   named<T extends Record<string, ZodTypeAny>>(
     struct: T
   ): {
-    [key in keyof T]: Argument<Infer<T[key]>>;
+    [key in keyof T]: Argument<T[key]>;
   };
   named(args: ZodRawShape | ZodTypeAny): Record<string, Argument<ZodTypeAny>> {
     if (args instanceof ZodType) {
@@ -184,13 +186,14 @@ export class Command {
   }
 
   parse(args: string[] = process.argv) {
-    // const [command, ...arg] = args;
-    // this._positionals['dirs'].value = arg[0];
-    let splitIndex = args.findIndex((arg) => arg in this.commands);
-    if (splitIndex === -1) {
-      splitIndex = args.length;
+    const splitIndex = args.findIndex((arg) => arg in this.commands);
+    const hasSubCommand = splitIndex !== -1;
+
+    let subCommandArgs: string[] = [];
+
+    if (hasSubCommand) {
+      subCommandArgs = args.splice(splitIndex + 1);
     }
-    const noCommandArgs = args.splice(splitIndex + 1);
 
     const { _unknown, ...params } = commandLineArgs(
       this._arguments.map((arg) => arg.definition),
@@ -202,70 +205,110 @@ export class Command {
     );
 
     if (_unknown && _unknown.length > 0) {
-      throw new Error(`Unknown command found ${_unknown[0]}`);
+      this.handler([
+        {
+          code: 'unknown-command',
+          command: _unknown[0].replace(/^(--)|(-)/, ''),
+          availables: Object.keys(this.commands).concat(Object.keys(this.#named))
+        }
+      ]);
+      process.exit(1);
     }
+
     const values = object({
       positionals: string().array()
     })
       .and(record(unknown()))
       .safeParse(params);
 
-    let commandName: string | undefined;
+    let subCommand: string | undefined;
 
     if (values.success) {
-      commandName = noCommandArgs.length > 0 ? values.data.positionals.pop() : undefined;
+      subCommand = hasSubCommand ? values.data.positionals.pop() : undefined;
+
       const { positionals, ...named } = values.data;
       const result = { positionals, named };
+
       const schema = object(
         this.schema as {
           positionals: ZodArray<ZodType<unknown>>;
           named: ZodObject<Record<string, ZodUnknown>>;
         }
-      ).parse(result);
-      this.#positionals.forEach((arg, index) => {
-        arg.value = schema.positionals[index];
-      });
+      ).safeParse(result);
 
-      Object.keys(this.#named).forEach((key) => {
-        this.#named[key].value = schema.named[key];
-      });
+      if (schema.success) {
+        this.#positionals.forEach((arg, index) => {
+          arg.value = schema.data.positionals[index];
+        });
+
+        Object.keys(this.#named).forEach((key) => {
+          this.#named[key].value = schema.data.named[key];
+        });
+      } else {
+        this.handler(schema.error.issues);
+        process.exit(0);
+      }
     }
 
-    if (commandName) {
-      const command = this.commands[commandName];
-      command.parse(noCommandArgs);
-    }
-    if (this._executor) {
+    if (subCommand) {
+      const command = this.commands[subCommand];
+      command.parse(subCommandArgs);
+    } else if (this._executor) {
       this._executor();
     }
   }
 
-  flags(): Record<string, Argument<ZodBoolean>> {
-    return new Proxy(
-      {},
-      {
-        get: (_, prop: string) => {
-          const boolType = boolean().default(false);
-          const arg = new Argument(boolType, {
-            name: prop,
-            type: Boolean
-          });
-          this.#named[prop] = arg;
-          this._arguments.push(arg);
+  flags(): Record<string, Argument<ZodBoolean>>;
+  flags<T extends Record<string, ZodBoolean>>(
+    struct: T
+  ): {
+    [key in keyof T]: Argument<T[key]>;
+  };
+  flags(args?: Record<string, ZodBoolean>): Record<string, Argument<ZodBoolean>> {
+    if (!args) {
+      return new Proxy(
+        {},
+        {
+          get: (_, prop: string) => {
+            const boolType = boolean().default(false);
+            const arg = new Argument(boolType, {
+              name: prop,
+              type: Boolean
+            });
+            this.#named[prop] = arg;
+            this._arguments.push(arg);
 
-          if (!this.schema.named) {
-            this.schema.named = object({
-              [prop]: boolType
-            });
-          } else {
-            this.schema.named = this.schema.named.extend({
-              [prop]: boolType
-            });
+            if (!this.schema.named) {
+              this.schema.named = object({
+                [prop]: boolType
+              });
+            } else {
+              this.schema.named = this.schema.named.extend({
+                [prop]: boolType
+              });
+            }
+
+            return arg;
           }
-
-          return arg;
         }
-      }
+      );
+    }
+    if (!this.schema.named) {
+      this.schema.named = object(args);
+    } else {
+      this.schema.named = this.schema.named.extend(args);
+    }
+    return Object.fromEntries(
+      Object.entries(args).map(([key, struct]) => {
+        const arg = new Argument(struct, {
+          name: dashCase(key),
+          type: Boolean
+        });
+        this._arguments.push(arg);
+        this.#named[key] = arg;
+
+        return [key, arg];
+      })
     );
   }
 
