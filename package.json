@@ -1,5 +1,5 @@
 {
-  "name": "solq",
+  "name": "soly",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -26,7 +26,7 @@
     "prebuild": "npm run clean",
     "test": "uvu -r esbuild-register dist",
     "coverage": "c8 npm test",
-    "lint": "run-s lint:ts lint:eslint lint:prettier",
+    "lint": "run-s lint:eslint lint:prettier",
     "lint:ts": "tsup src/index.ts --dts",
     "lint:eslint": "eslint '**/*.ts'",
     "lint:prettier": "prettier '**/*.{ts,json,yaml,md}'",
