@@ -53,7 +53,7 @@ const cli = createCLI('cli');
 
 cli.command('rm', (rm) => {
   // string for every positional
-  const files = rm.positionals(string());
+  const files = rm.positionals(string(), /* min */ 0, /* max */ 10);
   const { recursive } = rm.flags();
   recursive.alias('r');
 
