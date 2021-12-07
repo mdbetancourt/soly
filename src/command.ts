@@ -104,11 +104,7 @@ export class Command {
   }
 
   positionals<T extends [ZodTypeAny, ...ZodTypeAny[]]>(value: T): PositionalArguments<T>;
-  positionals<T extends ZodTypeAny>(
-    value: T,
-    min?: number,
-    max?: number
-  ): Argument<Infer<T>>[];
+  positionals<T extends ZodTypeAny>(value: T, min?: number, max?: number): Argument<T>[];
   positionals(
     args: ZodTypeAny | [ZodTypeAny, ...ZodTypeAny[]],
     min = 0,
