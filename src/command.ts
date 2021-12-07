@@ -23,6 +23,7 @@ import { Letter } from './utils';
 
 export class Argument<ZodT extends ZodTypeAny = ZodTypeAny> {
   #value?: Infer<ZodT>;
+  provided = false;
   constructor(public zod: ZodT, public definition: OptionDefinition) {
     // definition.type = (input) => zod.parse(input) as Infer<ZodT>;
   }
@@ -103,8 +104,16 @@ export class Command {
   }
 
   positionals<T extends [ZodTypeAny, ...ZodTypeAny[]]>(value: T): PositionalArguments<T>;
-  positionals<T extends ZodTypeAny>(value: T): Argument<Infer<T>>[];
-  positionals(args: ZodTypeAny | [ZodTypeAny, ...ZodTypeAny[]]): Argument<ZodTypeAny>[] {
+  positionals<T extends ZodTypeAny>(
+    value: T,
+    min?: number,
+    max?: number
+  ): Argument<Infer<T>>[];
+  positionals(
+    args: ZodTypeAny | [ZodTypeAny, ...ZodTypeAny[]],
+    min = 0,
+    max = 20
+  ): Argument<ZodTypeAny>[] {
     if (Array.isArray(args)) {
       this.schema.positionals ??= tuple(args);
       for (const arg of args) {
@@ -114,22 +123,14 @@ export class Command {
         this.#positionals.push(value);
       }
     } else {
-      this.schema.positionals ??= array(args);
-      return new Proxy([], {
-        get: (target, prop, receiver) => {
-          if (prop === 'length') {
-            return Infinity;
-          }
-          if (prop in target) {
-            return Reflect.get(target, prop, receiver) as unknown;
-          }
-          const value = new Argument(args, {
-            name: `positional:${this.positionalCount++}`
-          });
-          this.#positionals.push(value);
-          return value;
-        }
-      });
+      this.schema.positionals ??= array(args).min(min).max(max);
+      for (let index = 0; index < max; index++) {
+        const value = new Argument(args, {
+          name: `positional:${this.positionalCount++}`
+        });
+        this.#positionals.push(value);
+      }
+      return this.#positionals;
     }
 
     return this.#positionals;
@@ -239,10 +240,12 @@ export class Command {
       if (schema.success) {
         this.#positionals.forEach((arg, index) => {
           arg.value = schema.data.positionals[index];
+          arg.provided = schema.data.positionals[index] !== undefined;
         });
 
         Object.keys(this.#named).forEach((key) => {
           this.#named[key].value = schema.data.named[key];
+          this.#named[key].provided = schema.data.named[key] !== undefined;
         });
       } else {
         this.handler(schema.error.issues);

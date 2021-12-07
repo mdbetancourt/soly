@@ -12,6 +12,7 @@ specifiers:
   eslint: 8.1.0
   eslint-config-prettier: 8.3.0
   husky: 6.0.0
+  jiti: ^1.12.9
   lint-staged: 10.5.4
   npm-run-all: 4.1.5
   prettier: 2.4.1
@@ -39,6 +40,7 @@ devDependencies:
   eslint: 8.1.0
   eslint-config-prettier: 8.3.0_eslint@8.1.0
   husky: 6.0.0
+  jiti: 1.12.9
   lint-staged: 10.5.4
   npm-run-all: 4.1.5
   prettier: 2.4.1
@@ -2269,6 +2271,11 @@ packages:
   /java-properties/1.0.2:
     resolution: {integrity: sha512-qjdpeo2yKlYTH7nFdK0vbZWuTCesk4o63v5iVOlhMQPfuIZQfW/HI35SjfhA+4qpg36rnFSvUK5b1m+ckIblQQ==}
     engines: {node: '>= 0.6.0'}
+    dev: true
+
+  /jiti/1.12.9:
+    resolution: {integrity: sha512-TdcJywkQtcwLxogc4rSMAi479G2eDPzfW0fLySks7TPhgZZ4s/tM6stnzayIh3gS/db3zExWJyUx4cNWrwAmoQ==}
+    hasBin: true
     dev: true
 
   /jju/1.4.0:

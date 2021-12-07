@@ -8,7 +8,7 @@ test('one command', () => {
   let executed = false;
 
   cli.command('copy', (copy) => {
-    const [src, dst] = copy.positionals(string());
+    const [src, dst] = copy.positionals(string().optional(), 2, 2);
     const { branch, name } = copy.named(string().optional());
 
     branch.alias('b');
@@ -128,6 +128,28 @@ test('command depending another command', () => {
     };
   });
   throws(() => cli.parse(['copy', '--serve', '--out-folder', 'dist/']));
+});
+
+test('variadic', () => {
+  const cli = createCLI('cli');
+  let executed = false;
+
+  cli.command('copy', (copy) => {
+    const files = copy.positionals(string().optional(), 0, 3);
+
+    return () => {
+      executed = true;
+
+      equal(
+        files.map((ar) => ar.value),
+        ['src/index.ts', 'dist/index.ts', undefined]
+      );
+    };
+  });
+
+  cli.parse(['copy', 'src/index.ts', 'dist/index.ts']);
+
+  equal(executed, true);
 });
 
 test.run();
