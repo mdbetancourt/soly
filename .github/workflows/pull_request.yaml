@@ -12,6 +12,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
       - uses: pnpm/action-setup@v2.0.1
         with:
           version: 6.17.0
