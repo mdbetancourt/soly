@@ -12,13 +12,16 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.17.0
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
       - name: Test
-        run: npm test
+        run: pnpm test
         env:
           CI: true
       - name: Build
-        run: npm run build
+        run: pnpm run build
