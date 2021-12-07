@@ -48,7 +48,7 @@
     "semantic-release": "semantic-release"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "author": "Michel Betancourt",
   "dependencies": {
@@ -58,6 +58,7 @@
   },
   "devDependencies": {
     "@kraftr/build": "^0.5.0",
+    "@tsconfig/node16": "^1.0.2",
     "@types/command-line-args": "^5.2.0",
     "@types/node": "^16.11.8",
     "@types/string-similarity": "^4.0.0",

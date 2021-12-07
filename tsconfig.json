@@ -1,18 +1,12 @@
 {
+  "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "target": "ES6",
-    "lib": ["ESNext"],
     "moduleResolution": "Node",
-    "module": "ES2020",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
     "strictFunctionTypes": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
     "strictNullChecks": true,
-    "checkJs": false,
-    "skipLibCheck": true
+    "checkJs": false
   }
 }
