@@ -74,7 +74,7 @@ import { createCLI, number, z } from 'soly';
 
 cli.command('fetch', (fetch) => {
   // You can define a type for every value
-  const { maxRetries, method } = copy.named({
+  const { maxRetries, method } = fetch.named({
     maxRetries: number().min(0).default(3),
     method: z.enum(['http', 'https']).default('http')
   });
